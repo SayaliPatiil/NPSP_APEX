@@ -734,6 +734,16 @@ tasks:
         description: Set the BDI Mapping mode to 'Help Text' or 'Data Import Field Mapping'
         class_path: tasks.set_BDI_mapping_mode.SetBDIMappingMode
 
+    strip_startswith_tag_work_around:
+        description: Remove the startsWith tag from object-meta.xml files to workaround an issue with 2GP package testing
+        class_path: cumulusci.tasks.metadata.modify.RemoveElementsXPath
+        group: NPSP
+        options:
+            output_style: salesforce
+            elements:
+                - path: force-app/main/default/objects/**/*.object-meta.xml
+                  xpath: //ns:startsWith
+
 
 flows:
     install_regression:
