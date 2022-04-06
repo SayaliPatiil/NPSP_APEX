@@ -1,5 +1,5 @@
 ## @description: NPSP Performance Tests - Inserting Records
-## @date 2020-12-10
+## @date 2022-02-07
 
 *** Variables ***
 ${COUNTER} =      ${0}
@@ -14,7 +14,6 @@ Library         DateTime
 Resource        cumulusci/robotframework/Salesforce.robot
 Resource        robot/Cumulus/resources/NPSP.robot
 Suite Setup     Test Setup
-##  Suite Teardown  Final Cleanup
 
 *** Keywords ***
 ## =============================================================================================
@@ -146,8 +145,9 @@ Disable Duplicate Matching
 Delete Default Data
     [Documentation]     Delete Entitlement & Associated Records (these are created by default in new scratch orgs)
     Log to Console      Deleting Entitlement Records
-    Run keyword and ignore error        Run Task            test_data_delete
+    Run Task            test_data_delete
         ...     objects=Entitlement,Contact,Account
+        ...     ignore_row_errors=True
 
 Disable NPSP Triggers
     [Documentation]  Disable all NPSP Triggers
@@ -204,7 +204,7 @@ Delete Opportunities
 
 Insert Contact Perf Test 10000
     [Documentation]     Insert 10K Contacts with an Address using NPSP's triggers - which automatically creates an Account
-    ...                 and an Addess__c record.
+    ...                 and an Address__c record.
     [Tags]    long     insertions   contact
     FOR    ${index}    IN RANGE     ${LOOP_COUNTER}
         Insert 200 Contacts     ${True}
