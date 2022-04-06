@@ -64,11 +64,6 @@ public with sharing class ADDR_Addresses_TEST {
 
     private static OrgConfig orgConfig = new OrgConfig();
 
-    @TestSetup
-    private static void createTestData() {
-
-    }
-
     /*********************************************************************************************************
     @description
         create N new default Addresses for N Households (with M Contacts)
@@ -668,7 +663,7 @@ public with sharing class ADDR_Addresses_TEST {
         List<Account> accounts = UTIL_UnitTestData_TEST.createMultipleTestAccounts(2, CAO_Constants.HH_ACCOUNT_TYPE);
         insert accounts;
 
-        buildTestAddress(5);
+        buildTestAddress(2);
 
         for (Integer i=0; i < testAddresses.size(); i++) {
             testAddresses[i].Household_Account__c = accounts[i].Id;
@@ -696,7 +691,7 @@ public with sharing class ADDR_Addresses_TEST {
         List<Account> accounts = UTIL_UnitTestData_TEST.createMultipleTestAccounts(2, CAO_Constants.HH_ACCOUNT_TYPE);
         insert accounts;
 
-        buildTestAddress(5);
+        buildTestAddress(2);
 
         for (Integer i=0; i < testAddresses.size(); i++) {
             testAddresses[i].Household_Account__c = accounts[i].Id;
@@ -1375,7 +1370,7 @@ public with sharing class ADDR_Addresses_TEST {
 
         // Modify the Contact addresses directly, and set override
         Contact con = testContacts[0];
-        con.put('MailingStateCode', stateCode);
+        con.put('MailingState', state);
         con.is_Address_Override__c = true;
 
         Test.startTest();
@@ -1398,7 +1393,7 @@ public with sharing class ADDR_Addresses_TEST {
         }
 
         // Verify the Account's Billing Address info matches the Default Address record
-        assertEquals(testAddresses[0], defaultAddress);
+        assertEquals(retrievedAddresses[1], defaultAddress);
 
         // Verify the Contact's Address was updated as expected and that the Household and Contact Addresses are different.
         List<Account> retrievedAccounts = Database.query(buildAccountSoql());
@@ -1413,120 +1408,9 @@ public with sharing class ADDR_Addresses_TEST {
         System.assertEquals(false, isMatchAddressAccCon(eachContactAccount, listCon[0]));
 
         // Verify the new Address Mailing State matches Contact's MailingStateCode and not set as the Default
-        System.assertEquals(stateCode, newAddress.MailingState__c);
+        System.assertEquals('California', newAddress.MailingState__c);
         System.assertEquals(false, newAddress.Default_Address__c);
     }
-
-
-    /*********************************************************************************************************
-    @description
-        Update Address' Mailing Country when it is empty and State & Country Picklists are enabled.
-    verify:
-        Does not populate the Address' Mailing Country if the source sObject's CountryCode is empty
-        Populates the Address' Mailing Country with the source sObject's CountryCode value if the Mailing Country is empty
-    **********************************************************************************************************/
-    @IsTest
-    private static void testEmptyAddressCountryIsPopulatedFromCountryCode() {
-        if (!orgConfig.isStateCountryPicklistsEnabled()) {
-
-            return;
-        }
-
-        Contact con = new Contact();
-        con.put('MailingCountryCode', null);
-        Address__c addressEmptyCountry = new Address__c(MailingCountry__c = null);
-
-        Test.startTest();
-
-        String countryCode = 'US';
-        String country = 'United States';
-
-        NPSP_Address npspAddressEmptyCountry = new NPSP_Address(addressEmptyCountry);
-        npspAddressEmptyCountry.populateAddressCountryFromCountryCode(con, 'Mailing');
-        System.assertEquals(null, npspAddressEmptyCountry.country());
-
-        con.put('MailingCountryCode', countryCode);
-        npspAddressEmptyCountry.populateAddressCountryFromCountryCode(con, 'Mailing');
-        System.assertEquals(country, npspAddressEmptyCountry.country());
-
-        Test.stopTest();
-    }
-
-
-    /*********************************************************************************************************
-    @description
-        Update the Address' Mailing State when it is empty or does not match the source sObject's StateCode
-        and State & Country Picklists are enabled.
-    verify:
-        Does not populate the Address' Mailing State if the source sObject's StateCode is empty
-        Populate the Address' Mailing State with the source sObject's StateCode value if the Mailing State is empty
-        Populate the Address' Mailing State with the source sObject's StateCode value if the Mailing State does not match the StateCode
-    **********************************************************************************************************/
-    @IsTest
-    private static void testEmptyAddressStateIsPopulatedFromStateCode() {
-        if (!orgConfig.isStateCountryPicklistsEnabled()) {
-
-            return;
-        }
-
-        Contact con = new Contact();
-        con.put('MailingStateCode', null);
-        Address__c addressEmptyState = new Address__c(MailingState__c = null);
-
-        Test.startTest();
-
-        String stateCode = 'CA';
-
-        NPSP_Address npspAddressEmptyState = new NPSP_Address(addressEmptyState);
-        npspAddressEmptyState.populateAddressStateFromStateCode(con, 'Mailing');
-        System.assertEquals(null, npspAddressEmptyState.state());
-
-        con.put('MailingStateCode', stateCode);
-        npspAddressEmptyState.populateAddressStateFromStateCode(con, 'Mailing');
-        System.assertEquals(stateCode, npspAddressEmptyState.state());
-
-        npspAddressEmptyState.state('NY');
-        npspAddressEmptyState.populateAddressStateFromStateCode(con, 'Mailing');
-        System.assertEquals(stateCode, npspAddressEmptyState.state());
-
-        Test.stopTest();
-    }
-
-
-    /*********************************************************************************************************
-    @description
-        Checks if the Mailing State matches the source sObject's StateCode.
-    verify:
-        Returns false if the Address Mailing State is empty
-        Returns false if the Address Mailing State does not match the StateCode
-        Returns true if the Address Mailing State matches the StateCode
-    **********************************************************************************************************/
-    @IsTest
-    private static void testIsMatchingStateCode() {
-        if (!orgConfig.isStateCountryPicklistsEnabled()) {
-
-            return;
-        }
-
-        Address__c addressMatch = new Address__c();
-
-        Test.startTest();
-
-        String stateCode = 'CA';
-
-        NPSP_Address npspAddressMatch = new NPSP_Address(addressMatch);
-        npspAddressMatch.state(null);
-        System.assertEquals(false, npspAddressMatch.isMatchingStateCode(stateCode));
-
-        npspAddressMatch.state('Hawaii');
-        System.assertEquals(false, npspAddressMatch.isMatchingStateCode(stateCode));
-
-        npspAddressMatch.state('California');
-        System.assertEquals(true, npspAddressMatch.isMatchingStateCode(stateCode));
-
-        Test.stopTest();
-    }
-
 
     /*********************************************************************************************************
     @description
@@ -2189,17 +2073,21 @@ public with sharing class ADDR_Addresses_TEST {
     **********************************************************************************************************/
     @IsTest
     private static void addressShouldBePropagatedToAccountsAndContactsOnMultipleTriggerCalls() {
-        Integer totalHH = 20;
+        Integer totalHH = 205;
         Integer totalContactPerHH = 1;
-
         UTIL_Debug.disableDebugLogging();
         UTIL_UnitTestData_TEST.disableAffiliationsTriggers();
         UTIL_UnitTestData_TEST.disableRelationshipTriggers();
         UTIL_UnitTestData_TEST.disableMergeTriggers();
         UTIL_UnitTestData_TEST.disableHHNamingTriggers();
+        createAccountAndContactData(totalHH, totalContactPerHH);
 
-        createTestData(totalHH, totalContactPerHH);
+        // Act
+        Test.startTest();
+        createAddressData(totalHH, false);
+        Test.stopTest();
 
+        // Assert
         // verify that the HH and Contacts share the same address
         Map<Id, Account> accountById = new Map<Id, Account>([
             SELECT Id, Name, BillingStreet, BillingCity,
@@ -2212,6 +2100,10 @@ public with sharing class ADDR_Addresses_TEST {
         for (Contact con : contacts) {
             Account acc = accountById.get(con.AccountId);
 
+            // The assertions validate:
+            // 1. Address on Contact matches address on Account
+            // 2. Contact isAddressOverride is false
+            // 3. Contact current address is populated
             System.assertEquals(true, isMatchAddressAccCon(acc, con));
             System.assertEquals(false, con.is_Address_Override__c);
             System.assertNotEquals(null, con.Current_Address__c);
@@ -2246,42 +2138,170 @@ public with sharing class ADDR_Addresses_TEST {
         if (ADV_PackageInfo_SVC.useAdv()) {
             return;
         }
-        List<Account> testAccounts = UTIL_UnitTestData_TEST.createMultipleTestAccounts(1, CAO_Constants.HH_ACCOUNT_TYPE);
-        insert testAccounts;
-
         buildTestAddress(2);
-        testAddresses[0].Household_Account__c = testAccounts[0].Id;
-        testAddresses[1].Household_Account__c = testAccounts[0].Id;
-        testAddresses[1].Latest_Start_Date__c = System.today() - 1;
-        insert testAddresses;
+        NPSP_Contact npspContact = new NPSP_Contact(UTIL_UnitTestData_TEST.getContact());
+        npspContact.mailingAddress(new NPSP_Address(testAddresses[0]));
 
-        Contact testContact = UTIL_UnitTestData_TEST.getContact();
-        testContact.Current_Address__c = testAddresses[0].Id;
-        insert testContact;
+        insert npspContact.getRecord();
 
-        List<Address__c> testFirstAddress = [SELECT Latest_Start_Date__c, Latest_End_Date__c, Default_Address__c
-                                        FROM Address__c
-                                        WHERE Id = :testAddresses[0].Id];
+        Contact testContact = [SELECT Current_Address__c, Current_Address__r.Default_Address__c, AccountId
+                               FROM Contact
+                               WHERE Id = :npspContact.getRecord().Id
+                               LIMIT 1];
+        Id defaultAddressId = testContact.Current_Address__c;
+        System.assertEquals(true, testContact.Current_Address__r.Default_Address__c, 'The address should be the default address of ' +
+                'the household.');
 
-        System.assertEquals(true, testFirstAddress[0].Default_Address__c, 'Address should not be set as the default ' +
-                'address.');
+        testAddresses[1].Household_Account__c = testContact.AccountId;
+        insert testAddresses[1];
+
+        Address__c nonDefaultAddress = [SELECT Default_Address__c FROM Address__c WHERE Id = :testAddresses[1].Id];
 
         Test.startTest();
-            testAddresses[1].Default_Address__c = true;
-            update testAddresses[1];
+
+        nonDefaultAddress.Default_Address__c = true;
+        update nonDefaultAddress;
+
         Test.stopTest();
 
-        List<Address__c> testAddress = [SELECT Latest_Start_Date__c, Latest_End_Date__c, Default_Address__c
+        Address__c newDefaultAddress = [SELECT Default_Address__c, Latest_Start_Date__c, Latest_End_Date__c
+                                        FROM Address__c
+                                        WHERE Id = :nonDefaultAddress.Id
+                                        LIMIT 1];
+        Address__c previousDefaultAddress = [SELECT Default_Address__c, Latest_Start_Date__c, Latest_End_Date__c
+                                             FROM Address__c
+                                             WHERE Id = :defaultAddressId
+                                             LIMIT 1];
+        System.assertEquals(false, previousDefaultAddress.Default_Address__c, 'The previous default address should be' +
+                ' set to false.');
+        System.assertEquals(true, newDefaultAddress.Default_Address__c, 'The new default address should be' +
+                ' set to true.');
+        System.assertEquals(System.today(), previousDefaultAddress.Latest_End_Date__c, 'The latest end date on the ' +
+                'previous default address should be set to today.');
+        System.assertEquals(System.today(), previousDefaultAddress.Latest_Start_Date__c, 'The latest start date on ' +
+                'the previous default address should be set to today and remain unchanged.');
+        System.assertEquals(System.today(), newDefaultAddress.Latest_Start_Date__c, 'The latest start date on the ' +
+                'new default address should be set to today.');
+        System.assertEquals(null, newDefaultAddress.Latest_End_Date__c, 'The latest end date on the ' +
+                'new default address should be set to null.');
+    }
+
+    @IsTest
+    private static void latestEndDateOnUpdatedNonDefaultAddressSetToToday() {
+        if (ADV_PackageInfo_SVC.useAdv()) {
+            return;
+        }
+        buildTestAddress(1);
+        NPSP_Contact npspContact = new NPSP_Contact(UTIL_UnitTestData_TEST.getContact());
+        npspContact.mailingAddress(new NPSP_Address(testAddresses[0]));
+
+        insert npspContact.getRecord();
+
+        Contact testContact = [SELECT Current_Address__c, Current_Address__r.Default_Address__c, AccountId
+                               FROM Contact
+                               WHERE Id = :npspContact.getRecord().Id
+                               LIMIT 1];
+        System.assertEquals(true, testContact.Current_Address__r.Default_Address__c, 'The address should be the default address of ' +
+                'the household.');
+
+        Address__c defaultAddress = [SELECT Default_Address__c
+                                     FROM Address__c
+                                     WHERE Id = :testContact.Current_Address__c];
+
+        Test.startTest();
+
+        defaultAddress.Default_Address__c = false;
+        update defaultAddress;
+
+        Test.stopTest();
+
+        Address__c updatedDefaultAddress = [SELECT Default_Address__c, Latest_Start_Date__c, Latest_End_Date__c
+                                            FROM Address__c
+                                            WHERE Id = :defaultAddress.Id
+                                            LIMIT 1];
+        System.assertEquals(false, updatedDefaultAddress.Default_Address__c, 'The previous default address should be' +
+                ' set to false.');
+        System.assertEquals(System.today(), updatedDefaultAddress.Latest_End_Date__c, 'The latest end date on the ' +
+                'previous default address should be set to today.');
+    }
+
+    @IsTest
+    private static void newNonDefaultAddressHasNullStartAndEndDate() {
+        if (ADV_PackageInfo_SVC.useAdv()) {
+            return;
+        }
+        buildTestAddress(2);
+        NPSP_Contact npspContact = new NPSP_Contact(UTIL_UnitTestData_TEST.getContact());
+        npspContact.mailingAddress(new NPSP_Address(testAddresses[0]));
+
+        insert npspContact.getRecord();
+
+        Contact testContact = [SELECT Current_Address__c, Current_Address__r.Default_Address__c, AccountId
+                               FROM Contact
+                               WHERE Id = :npspContact.getRecord().Id
+                               LIMIT 1];
+        System.assertEquals(true, testContact.Current_Address__r.Default_Address__c, 'The address should be the default address of ' +
+                'the household.');
+
+        testAddresses[1].Household_Account__c = testContact.AccountId;
+
+        Test.startTest();
+
+        insert testAddresses[1];
+
+        Test.stopTest();
+
+        Address__c updatedTestAddress = [SELECT Default_Address__c, Latest_Start_Date__c, Latest_End_Date__c
+                                            FROM Address__c
+                                            WHERE Id = :testAddresses[1].Id
+                                            LIMIT 1];
+        System.assertEquals(false, updatedTestAddress.Default_Address__c, 'The previous default address should be' +
+                ' set to false.');
+        System.assertEquals(null, updatedTestAddress.Latest_End_Date__c, 'The latest end date on the ' +
+                'new address should be null.');
+        System.assertEquals(null, updatedTestAddress.Latest_Start_Date__c, 'The latest start date on the ' +
+                'new address should be null.');
+    }
+
+    @IsTest
+    private static void updatedNonDefaultStartAndEndDateIsRetained() {
+        if (ADV_PackageInfo_SVC.useAdv()) {
+            return;
+        }
+        buildTestAddress(2);
+        NPSP_Contact npspContact = new NPSP_Contact(UTIL_UnitTestData_TEST.getContact());
+        npspContact.mailingAddress(new NPSP_Address(testAddresses[0]));
+
+        insert npspContact.getRecord();
+
+        Contact testContact = [SELECT AccountId FROM Contact LIMIT 1];
+
+        testAddresses[1].Household_Account__c = testContact.AccountId;
+        insert testAddresses[1];
+
+        Address__c testAddress = [SELECT Latest_Start_Date__c, Latest_End_Date__c
                                   FROM Address__c
-                                  WHERE Id IN :testAddresses
-                                  ORDER BY CreatedDate];
-        System.assertEquals(true, testAddress[1].Default_Address__c, 'Address should be set as the default address.');
-        System.assertEquals(System.today(), testAddress[1].Latest_Start_Date__c, 'The default address latest start ' +
-        'date should be set to today\'s date.');
-        System.assertEquals(false, testAddress[0].Default_Address__c, 'Address should not be set as the default ' +
-                'address.');
-        System.assertEquals(System.today(), testAddress[0].Latest_End_Date__c, 'The previous default address latest ' +
-                'end date should be set to today\'s date.');
+                                  WHERE Id = :testAddresses[1].Id
+                                  LIMIT 1];
+        Test.startTest();
+
+        testAddress.Latest_Start_Date__c = System.today() - 2;
+        testAddress.Latest_End_Date__c = System.today() - 1;
+
+        update testAddress;
+
+        Test.stopTest();
+
+        Address__c updatedTestAddress = [SELECT Default_Address__c, Latest_Start_Date__c, Latest_End_Date__c
+                                         FROM Address__c
+                                         WHERE Id = :testAddresses[1].Id
+                                         LIMIT 1];
+        System.assertEquals(false, updatedTestAddress.Default_Address__c, 'The previous default address should be' +
+                ' set to false.');
+        System.assertEquals(System.today() - 1, updatedTestAddress.Latest_End_Date__c, 'The latest end date on the ' +
+                'non-default address should not have changed.');
+        System.assertEquals(System.today() - 2, updatedTestAddress.Latest_Start_Date__c, 'The latest start date on the ' +
+                'non-default address should not have changed.');
     }
 
     // Helpers
@@ -2423,6 +2443,7 @@ public with sharing class ADDR_Addresses_TEST {
                 MailingStreet__c, MailingCity__c, MailingState__c,
                 MailingPostalCode__c, MailingCountry__c
             FROM Address__c
+            ORDER BY MailingState__c
         ];
     }
 
