@@ -152,7 +152,7 @@ public with sharing class RD2_SaveRequest {
         for (String fieldApiName : customFieldValues.keySet()) {
             if (!permissions.canCreateInstanced(
                     rdSObjectDescribe.getName(),
-                    fieldApiName,
+                    UTIL_Namespace.StrTokenNSPrefix(fieldApiName),
                     false)) {
 
                 customFieldValues.remove(fieldApiName);
