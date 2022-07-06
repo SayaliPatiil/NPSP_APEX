@@ -14,7 +14,7 @@
         <!-- <values>
             <fullName>Id%2E Decision Makers</fullName>
             <default>false</default>
-        </values> -->
+        </values>
         <values>
             <fullName>Needs Analysis</fullName>
             <default>false</default>
@@ -30,7 +30,7 @@
         <values>
             <fullName>Proposal%2FPrice Quote</fullName>
             <default>false</default>
-        </values>
+        </values> -->
         <values>
             <fullName>Prospecting</fullName>
             <default>false</default>
