@@ -11,10 +11,10 @@
             <fullName>Closed Won</fullName>
             <default>false</default>
         </values>
-        <values>
+        <!-- <values>
             <fullName>Id%2E Decision Makers</fullName>
             <default>false</default>
-        </values>
+        </values> -->
         <values>
             <fullName>Needs Analysis</fullName>
             <default>false</default>
