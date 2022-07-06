@@ -39,10 +39,10 @@
             <fullName>Qualification</fullName>
             <default>false</default>
         </values>
-        <values>
+        <!-- <values>
             <fullName>Value Proposition</fullName>
             <default>false</default>
-        </values>
+        </values> -->
     </businessProcesses>
 
     <recordTypes>
