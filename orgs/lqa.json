@@ -1,0 +1,30 @@
+{
+  "orgName": "NPSP - LQA Org",
+  "edition": "Developer",
+  "hasSampleData": "false",
+  "settings": {
+    "securitySettings": {
+      "enableAdminLoginAsAnyUser": true,
+      "sessionSettings": {
+        "forceRelogin": false
+      }
+    },
+    "chatterSettings": {
+      "enableChatter": true
+    },
+    "lightningExperienceSettings": {
+      "enableS1DesktopEnabled": true
+    },
+    "userManagementSettings": {
+      "enableEnhancedPermsetMgmt": true,
+      "enableEnhancedProfileMgmt": true,
+      "enableNewProfileUI": true
+    },
+    "mobileSettings": {
+      "enableS1EncryptedStoragePref2": false
+    },
+    "languageSettings": {
+      "enableTranslationWorkbench": true
+    }
+  }
+}
