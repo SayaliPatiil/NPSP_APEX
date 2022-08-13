@@ -186,6 +186,13 @@ tasks:
         options:
             path: unpackaged/config/delete
 
+    deploy_translation_org_setup:
+        description: Deploys the metadata for translation org setup used for localization testing
+        class_path: cumulusci.tasks.salesforce.Deploy
+        group: Salesforce Metadata
+        options:
+            path: unpackaged/config/translation_org_setup
+
     deploy_trailhead_config:
         description: Deploys the metadata for Trailhead Playground config
         class_path: cumulusci.tasks.salesforce.Deploy
@@ -769,6 +776,17 @@ tasks:
                 - "*.cls"
 
 flows:
+    build_german_org:
+        steps:
+            1:
+                flow: config_trial_org_2gp
+            2:
+                task: deploy_translation_org_setup
+            3:
+                task: set_user_language
+                options:
+                    param1: german
+
     build_unlocked_test_package:
         steps:
             0:
@@ -923,6 +941,34 @@ flows:
                 flow: config_trial
             4:
                 task: run_tests
+
+    config_trial_org_2gp:
+        steps:
+            1:
+                flow: install_2gp_commit
+            2:
+                task: deploy_post
+            3:
+                task: deploy_tso_config
+            4:
+                task: test_data_relationships
+                ignore_failure: true
+            5:
+                task: deploy_trial_translations
+            6:
+                task: deploy_reports
+            7:
+                flow: enable_rd2
+            9:
+                flow: enable_gift_entry
+            10:
+                task: execute_anon
+                options:
+                    path: scripts/trial/TrialCustomSettingsDefaults.cls
+                    apex: updateCustomSettingsDefaults();
+            11:
+                task: update_admin_profile
+
 
     config_trial_org:
         steps:
@@ -1780,6 +1826,8 @@ orgs:
             config_file: orgs/trial.json
         enterprise:
             config_file: orgs/enterprise.json
+        lqa:
+            config_file: orgs/lqa.json
 
 plans:
     existing_org:
