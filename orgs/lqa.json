@@ -6,8 +6,7 @@
     "securitySettings": {
       "enableAdminLoginAsAnyUser": true,
       "sessionSettings": {
-        "forceRelogin": false,
-        "identityConfirmationOnTwoFactorRegistrationEnabled": false
+        "forceRelogin": false
       }
     },
     "chatterSettings": {
